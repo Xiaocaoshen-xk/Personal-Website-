@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Image Filter</title>
+    <style>
+      canvas {
+        margin: 10px;
+        border: 1px solid black;
+      }
+      label {
+        display: block;
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Image Filter</h1>
+    <button onclick="start()">Start Program</button>
+    <div>
+      <label>Original Image</label>
+      <canvas id="original" width="320" height="180"></canvas>
+      <label>Filtered Image</label>
+      <canvas id="filtered" width="320" height="180"></canvas>
+    </div>
+
+    <script>
+      const canvasOriginal = document.getElementById("original");
+      const ctxOriginal = canvasOriginal.getContext("2d");
+      const canvasFiltered = document.getElementById("filtered");
+      const ctxFiltered = canvasFiltered.getContext("2d");
+
+      const imageWidth = canvasOriginal.width;
+      const imageHeight = canvasOriginal.height;
+
+      function start() {
+        const imageUrl = prompt("Enter the image URL:");
+        const filterMethod = parseInt(
+          prompt("Choose a filter:\n1. Brighten\n2. Darken\n3. Pixelate"),
+          10
+        );
+
+        const img = new Image();
+        img.crossOrigin = "Anonymous"; // Allow external images
+        img.onload = () => {
+          // Draw the original image
+          ctxOriginal.drawImage(img, 0, 0, imageWidth, imageHeight);
+          // Apply filter
+          applyFilter(filterMethod);
+        };
+        img.onerror = () => alert("Failed to load image.");
+        img.src = imageUrl;
+      }
+
+      function applyFilter(method) {
+        const imageData = ctxOriginal.getImageData(
+          0,
+          0,
+          imageWidth,
+          imageHeight
+        );
+        const data = imageData.data;
+
+        if (method === 1) {
+          const amount = parseInt(prompt("Brighten amount (0–255):"), 10);
+          for (let i = 0; i < data.length; i += 4) {
+            data[i] = Math.min(data[i] + amount, 255); // Red
+            data[i + 1] = Math.min(data[i + 1] + amount, 255); // Green
+            data[i + 2] = Math.min(data[i + 2] + amount, 255); // Blue
+          }
+        } else if (method === 2) {
+          const amount = parseInt(prompt("Darken amount (0–255):"), 10);
+          for (let i = 0; i < data.length; i += 4) {
+            data[i] = Math.max(data[i] - amount, 0); // Red
+            data[i + 1] = Math.max(data[i + 1] - amount, 0); // Green
+            data[i + 2] = Math.max(data[i + 2] - amount, 0); // Blue
+          }
+        } else if (method === 3) {
+          pixelateImage(data, imageWidth, imageHeight, 5);
+        } else {
+          alert("Invalid option. Choose 1, 2, or 3.");
+          return;
+        }
+
+        ctxFiltered.putImageData(imageData, 0, 0);
+      }
+
+      function pixelateImage(data, width, height, blockSize) {
+        for (let y = 0; y < height; y += blockSize) {
+          for (let x = 0; x < width; x += blockSize) {
+            const i = (y * width + x) * 4;
+
+            const red = data[i];
+            const green = data[i + 1];
+            const blue = data[i + 2];
+
+            // Fill block
+            for (let dy = 0; dy < blockSize; dy++) {
+              for (let dx = 0; dx < blockSize; dx++) {
+                const px = x + dx;
+                const py = y + dy;
+                if (px < width && py < height) {
+                  const idx = (py * width + px) * 4;
+                  data[idx] = red;
+                  data[idx + 1] = green;
+                  data[idx + 2] = blue;
+                }
+              }
+            }
+          }
+        }
+      }
+    </script>
+  </body>
+</html>

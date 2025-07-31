@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script>
+      var imageUrl = readLine(
+        "Please enter the url of the image that you want to filter"
+      );
+      var filterList = ["", "Brighten", "Darken", "Pixelation"];
+      var method = readInt(
+        "How do you want to change the image?" +
+          "\n" +
+          "1." +
+          filterList[1] +
+          "\n" +
+          "2." +
+          filterList[2] +
+          "\n" +
+          "3." +
+          filterList[3]
+      );
+      var RED = 0;
+      var GREEN = 1;
+      var BLUE = 2;
+      var labelGap = 20;
+      var imageGap = 30;
+      var horiGap = 5;
+      var imageWidth = 320;
+      var imageHeight = 180;
+      var IMAGE_LOAD_WAIT_TIME = 50;
+      function start() {
+        addLabel();
+        addImage();
+      }
+      function addLabel() {
+        var original_Label = new Text("Original image", "12pt Arial");
+        original_Label.setPosition(horiGap, labelGap);
+        add(original_Label);
+        var filter_Label = new Text(
+          "The image after " + filterList[method],
+          "12pt Arial"
+        );
+        filter_Label.setPosition(
+          horiGap,
+          labelGap * 2 + imageHeight + imageGap
+        );
+        add(filter_Label);
+      }
+      function addImage() {
+        var image = new WebImage(imageUrl);
+        image.setSize(imageWidth, imageHeight);
+        image.setPosition(horiGap, imageGap);
+        add(image);
+        var image2 = new WebImage(imageUrl);
+        image2.setSize(imageWidth, imageHeight);
+        image2.setPosition(horiGap, labelGap + imageHeight + imageGap * 2);
+        add(image2);
+        setTimeout(function () {
+          addFilter(image2, method);
+        }, IMAGE_LOAD_WAIT_TIME);
+      }
+      function addFilter(image, method) {
+        if (method == 1) {
+          var brightenValue = readInt(
+            "Please enter the number that you want the image to be brightened from 0 to 255"
+          );
+          for (var x = 0; x < imageWidth; x++) {
+            for (var y = 0; y < imageHeight; y++) {
+              var pixel = image.getPixel(x, y);
+              pixel = brighten(pixel, brightenValue);
+              image.setRed(x, y, pixel[RED]);
+              image.setGreen(x, y, pixel[GREEN]);
+              image.setBlue(x, y, pixel[BLUE]);
+            }
+          }
+        } else if (method == 2) {
+          var darkenValue = readInt(
+            "Please enter the number that you want the image to be darkened from 0 to 255"
+          );
+          for (var x = 0; x < imageWidth; x++) {
+            for (var y = 0; y < imageHeight; y++) {
+              var pixel = image.getPixel(x, y);
+              pixel = darken(pixel, darkenValue);
+              image.setRed(x, y, pixel[RED]);
+              image.setGreen(x, y, pixel[GREEN]);
+              image.setBlue(x, y, pixel[BLUE]);
+            }
+          }
+        } else if (method == 3) {
+          for (var x = 0; x < imageWidth; x++) {
+            for (var y = 0; y < imageHeight; y++) {
+              var pixel = image.getPixel(x, y);
+              pixel = pixelation(pixel, x, y, image);
+              image.setRed(x, y, pixel[RED]);
+              image.setGreen(x, y, pixel[GREEN]);
+              image.setBlue(x, y, pixel[BLUE]);
+            }
+          }
+        } else {
+          alert("The program only takes number from 1 to 3");
+        }
+      }
+      function pixelation(pixel, x, y, image) {
+        /*This function divides the image into blocks of 3 pixel x 3 pixel(9 pixels in total)
+and determine the color within the block using the color of the center pixel*/
+        if (x % 2 == 0) {
+          if (y % 2 == 0) {
+            //if the pixel is located at the exact center
+            pixel[RED] = pixel[RED];
+            pixel[GREEN] = pixel[GREEN];
+            pixel[BLUE] = pixel[BLUE];
+          } else if (y % 2 == 1) {
+            if (y % 3 == 0) {
+              //if the pixel is located at the bottom of the center column
+              var pixel2 = image.getPixel(x, y - 1);
+              pixel[RED] = pixel2[RED];
+              pixel[GREEN] = pixel2[GREEN];
+              pixel[BLUE] = pixel2[BLUE];
+            } else {
+              //if the pixel is located at the top of the center column
+              var pixel2 = image.getPixel(x, y + 1);
+              pixel[RED] = pixel2[RED];
+              pixel[GREEN] = pixel2[GREEN];
+              pixel[BLUE] = pixel2[BLUE];
+            }
+          }
+        } else if (x % 2 == 1) {
+          if (x % 3 == 0) {
+            if (y % 2 == 0) {
+              //if the pixel is located directly to the right
+              var pixel2 = image.getPixel(x - 1, y);
+              pixel[RED] = pixel2[RED];
+              pixel[GREEN] = pixel2[GREEN];
+              pixel[BLUE] = pixel2[BLUE];
+            } else if (y % 3 == 0) {
+              // if the pixel is in the bottom right corner
+              var pixel2 = image.getPixel(x - 1, y - 1);
+              pixel[RED] = pixel2[RED];
+              pixel[GREEN] = pixel2[GREEN];
+              pixel[BLUE] = pixel2[BLUE];
+            } else {
+              //if the pixel is in the upper right corner
+              var pixel2 = image.getPixel(x - 1, y + 1);
+              pixel[RED] = pixel2[RED];
+              pixel[GREEN] = pixel2[GREEN];
+              pixel[BLUE] = pixel2[BLUE];
+            }
+          } else {
+            if (y % 2 == 0) {
+              //if the pixel is located directly to the left
+              var pixel2 = image.getPixel(x + 1, y);
+              pixel[RED] = pixel2[RED];
+              pixel[GREEN] = pixel2[GREEN];
+              pixel[BLUE] = pixel2[BLUE];
+            } else if (y % 3 == 0) {
+              //if the pixel is located in the bottom left corner
+              var pixel2 = image.getPixel(x + 1, y - 1);
+              pixel[RED] = pixel2[RED];
+              pixel[GREEN] = pixel2[GREEN];
+              pixel[BLUE] = pixel2[BLUE];
+            } else {
+              //if the pixel is located in the upper left corner
+              var pixel2 = image.getPixel(x + 1, y + 1);
+              pixel[RED] = pixel2[RED];
+              pixel[GREEN] = pixel2[GREEN];
+              pixel[BLUE] = pixel2[BLUE];
+            }
+          }
+        }
+        return pixel;
+      }
+      function brighten(pixel, brighten) {
+        pixel[RED] = Math.min(pixel[RED] + brighten, 255);
+        pixel[GREEN] = Math.min(pixel[GREEN] + brighten, 255);
+        pixel[BLUE] = Math.min(pixel[BLUE] + brighten, 255);
+        return pixel;
+      }
+      function darken(pixel, darken) {
+        pixel[RED] = Math.max(pixel[RED] - darken, 0);
+        pixel[GREEN] = Math.max(pixel[GREEN] - darken, 0);
+        pixel[BLUE] = Math.max(pixel[BLUE] - darken, 0);
+        return pixel;
+      }
+    </script>
+  </head>
+  <body>
+    <div><button onclick="start()">Click to Start Main Function</button></div>
+  </body>
+</html>
